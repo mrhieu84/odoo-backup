@@ -68,3 +68,5 @@ MAX_FILES_DUMP = 3
 PASSWORD_LOGIN_UI = 'your password login'
 ```
 
+
+check: https://tech.nhdesign.app/article/detail/2510800017039360
