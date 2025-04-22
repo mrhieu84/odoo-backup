@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NHOdooBackup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        color: #333;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        
+        margin: 5px 0;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+       
+      }
+
+      a {
+        text-decoration: none;
+        color: #007BFF;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      #restoring {
+        display: none;
+        font-size: 1.5em;
+        color: #f39c12;
+        padding: 20px;
+        text-align: center;
+      }
+      
+      .backup-btn {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.2s ease;
+      }
+      
+      .backup-btn:hover {
+        background-color: #0056b3;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      
+      .backup-btn:active {
+        background-color: #004494;
+        transform: scale(0.98);
+      }
+      
+      /* Styling for the backing div */
+      .show-message {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent black */
+        color: white;
+        display: none; /* Initially hidden */
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        text-align: center; /* Center text horizontally */
+      }
+      
+      .show-message span {
+        font-size: 2em;
+        color: blue;
+        padding: 20px;
+      }
+      
+      #file-list {
+          list-style-type: none;
+          padding: 0;
+          margin: 20px 0;
+          max-height: calc(100vh - 250px);
+          overflow-y: auto;
+          max-width: calc(100% - 45% - 40px); 
+          background-color: white;
+          padding-right: 10px;
+  
+        }
+
+#file-list::-webkit-scrollbar {
+  width: 10px;
+}
+#file-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+#file-list::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+
+    </style>
+  </head>
+  <body>
+  
+    
+
+
+    <h1>NHOdooBackup</h1>
+    <p style="color:green"> Smart Backup for Odoo</p>
+    <div style="max-width:50%; text-align:justify;">
+        <p>
+          This is a lightweight, efficient backup system designed to handle large PostgreSQL database and filestore used by Odoo.
+        </p>
+      
+        <p><strong>Key Features:</strong></p>
+        <ul style="padding-left: 20px;">
+          <li>Daily backup automation</li>
+          <li>Efficient handling of large <code>.dump</code> and filestore</li>
+          <li>Auto-cleanup to limit backup count</li>
+          <li>Dashboard to view, download, restore, or delete backups</li>
+        </ul>
+      </div>
+
+ 
+    <p style="color:blue;">Next scheduled backup at: {{ next_schedule }}</p> 
+
+    <form id="backup-form" action="{{ url_for('backup_now') }}" method="POST" style="display:inline;">
+      <button class="backup-btn" type="submit" onclick="return confirm('Are you sure you want to run backup now?')">
+        Backup Now
+      </button>
+    </form>
+
+    <ul id="file-list">
+        {% for file in files %}
+          <li style="background: {% if file.is_dump_file %}linear-gradient(
+          90deg,
+          rgba(255, 0, 0, 0.1),     /* Red */
+          rgba(255, 165, 0, 0.1),   /* Orange */
+          rgba(255, 255, 0, 0.1),   /* Yellow */
+          rgba(0, 128, 0, 0.1),     /* Green */
+          rgba(0, 0, 255, 0.1),     /* Blue */
+          rgba(75, 0, 130, 0.1),    /* Indigo */
+          rgba(238, 130, 238, 0.1)  /* Violet */
+        );{% else %}beige{% endif %};">
+            <a href="{{ file.url }}">{{ file.name }}</a> ({{ file.size }} MB)
+            <form action="{{ url_for('restore', filename=file.name) }}" method="POST" class="restore-form" style="display:inline;">
+              <button type="submit">Restore</button>
+            </form>
+            <form action="{{ url_for('delete', filename=file.name) }}" method="POST" class="delete-form" style="display:inline;">
+              <button type="submit" onclick="return confirm('Are you sure you want to delete this backup?')">Delete</button>
+            </form>
+          </li>
+        {% endfor %}
+      </ul>
+
+    
+    <div style="position: fixed; top: 20px; right: 20px; width: 45%; height: 90%; background: #fff; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; font-family: monospace;" id="log-container">
+                    <h3 style="margin-top: 0;">Server Log</h3>
+                    <div id="log-content" style="white-space: pre-wrap;"></div>
+                  </div>
+
+
+
+
+    <div class='show-message'>
+      <span>Please wait, backing up...</span>
+    </div>
+    
+    
+    <div id="password-overlay" style="
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:white;
+        z-index:9999;
+        display:none;
+   
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+      ">
+        <h2>Enter Access Code</h2>
+        <input type="password" id="access-input" placeholder="Enter code" style="padding:10px;font-size:16px;" autofocus />
+        <button onclick="checkAccess()" style="padding:10px 20px;margin-top:10px;">Enter</button>
+        <p id="access-msg" style="color:red;margin-top:10px;"></p>
+      </div>
+
+
+
+    <script>
+    
+  
+    // Disable all anchor tags after click
+    $('a').on('click', function (e) {
+      const link = $(this);
+      if (link.data('clicked')) {
+        e.preventDefault(); 
+      } else {
+        link.data('clicked', true);
+        link.css('pointer-events', 'none'); 
+        link.css('opacity', '0.5');         
+      }
+    });
+      // Fixing the event handler for restore form
+      $('.restore-form').on('submit', function(e) {
+        const confirmRestore = confirm('Please stop services before restore database. Are you sure you want to restore this backup ?');
+        if (!confirmRestore) {
+          e.preventDefault();
+        } else {
+          
+          $('.show-message').find('span').text('Please wait, Restoring...'); 
+           $('.show-message').show();
+           
+           setInterval(() => {
+                 
+                 console.log("loading log...")
+           
+                 loadLog();
+    
+            }, 1500);
+
+
+
+        }
+      });
+      
+      // Show "Backing..." on backup form submit and disable the button
+      $('#backup-form').on('submit', function() {
+        $('.show-message').find('span').text('Please wait, backing up...')
+         $('.show-message').show();  
+        $('.backup-btn').prop('disabled', true);  
+        
+        setInterval(() => {
+                 
+                 console.log("loading log...")
+           
+                 loadLog();
+    
+            }, 1500);
+            
+            
+        
+      });
+
+      // Hide backing overlay when the backup is done (for demonstration purposes, you can replace this with actual logic)
+      $(document).ajaxComplete(function() {
+        $('.show-message').find('span').text('Please wait, backing up...')
+         $('.show-message').hide();  
+        $('.backup-btn').prop('disabled', false);  
+      });
+      
+    </script>
+    
+    
+    <script>
+        function loadLog() {
+              fetch("/log")
+                .then(response => response.text())
+                .then(html => {
+                  const logContent = document.getElementById("log-content");
+                  logContent.innerHTML = html;
+                  const container = document.getElementById("log-container");
+                  container.scrollTop = container.scrollHeight; 
+                });
+            }
+      
+        // Load log from server
+        loadLog();
+       
+      </script>
+
+  </body>
+</html>
