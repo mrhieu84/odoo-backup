@@ -12,7 +12,12 @@ import schedule
 import subprocess
 import sys
 import pytz 
+from flask_socketio import SocketIO
+import psutil
+import json
 
+import warnings
+warnings.filterwarnings("ignore", category=RuntimeWarning, message="'sin' and 'sout' swap memory stats couldn't be determined")
 
 
 from config import MINIO_URL, ACCESS_KEY, SECRET_KEY, BUCKET_BAK, BACKUP_DIR, FILESTORE_DIR, PASSWORD_LOGIN_UI, LOCAL_TZ
@@ -23,6 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+
 class NameFilter(logging.Filter):
     def __init__(self, allowed_name):
         super().__init__()
@@ -62,9 +68,15 @@ builtins.print = print_with_time
                                    
 print("Starting flask server")
 app = Flask(__name__)
+socketio = SocketIO(app, async_mode='eventlet')
+
 app.secret_key = 'mrhieu!'  #encode for session cookie
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+online_clients = 0
+cpu_thread_running = False
+
 
 #ensure folder created
 if not os.path.exists(BACKUP_DIR):
@@ -105,8 +117,123 @@ def index():
     next_schedule = midnight.strftime('%Y-%m-%d %H:%M:%S')
 
     return render_template('index.html', files=files, next_schedule=next_schedule, password_login=PASSWORD_LOGIN_UI)
+    
 
- 
+
+@app.route('/disk_info', methods=['GET'])
+def get_disk_info():
+    partitions = psutil.disk_partitions()
+    disk_info = []
+    
+
+    for partition in partitions:
+        if partition.mountpoint == '/': 
+            usage = psutil.disk_usage(partition.mountpoint)
+            disk_info.append({
+                'device': partition.device,
+                'mountpoint': partition.mountpoint,
+                'fstype': partition.fstype,
+                'total': usage.total,
+                'used': usage.used,
+                'free': usage.free,
+                'percent': usage.percent
+            })
+
+    return jsonify(disk_info)
+
+@app.route('/cpu_info', methods=['GET'])
+def get_cpu_info():
+    # Get CPU usage per core
+    cpu_per_core = psutil.cpu_percent(percpu=True)
+
+    # Get CPU model name
+    cpu_model = get_cpu_model()
+
+    # Get total number of CPU cores
+    total_cores = psutil.cpu_count(logical=True)  # logical=True for logical CPUs (including threads)
+
+    # Prepare the data to be sent back
+    cpu_info = {
+        "cpu_per_core": cpu_per_core,
+        "cpu_model": cpu_model,
+        "total_cores": total_cores
+    }
+
+    # Return the CPU info as a JSON response
+    return jsonify(cpu_info)
+
+
+def get_cpu_model():
+    try:
+        # Execute 'lscpu' command and get the output
+        result = subprocess.run(['lscpu'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Search for the 'Model name' in the lscpu output
+        for line in result.stdout.splitlines():
+            if line.startswith("Model name:"):
+                model_name = line.split(":")[1].strip()
+                return model_name
+        return "Unknown CPU Model"
+    except Exception as e:
+        return f"Error retrieving CPU model: {str(e)}"
+        
+            
+
+def send_cpu_info():
+    global online_clients, cpu_thread_running
+  
+    while True:
+        if online_clients > 0:
+            # Get CPU usage per core
+            cpu_per_core = psutil.cpu_percent(percpu=True)
+
+            # Get RAM usage information
+            ram_info = psutil.virtual_memory()
+            ram_total = ram_info.total / (1024 * 1024)  # Convert to MB
+            
+            ram_used = (ram_info.total - ram_info.available) / (1024 * 1024)
+
+            # Get Swap usage information
+            swap_info = psutil.swap_memory()
+            swap_used = swap_info.used / (1024 * 1024)  # Convert to MB
+            swap_total = swap_info.total / (1024 * 1024)  # Convert to MB
+
+            # Emit CPU, RAM, and Swap data
+            socketio.emit("cpu_update", {
+                "cpu_per_core": cpu_per_core,
+                "ram_used": ram_used,
+                "ram_total": ram_total,
+                "swap_used": swap_used,
+                "swap_total": swap_total
+            })
+
+            socketio.sleep(1)
+        else:
+            print("No clients connected. Pausing CPU info broadcasting.")
+            cpu_thread_running = False
+            break
+            
+
+@socketio.on('connect')
+def connected():
+    global online_clients, cpu_thread_running
+    online_clients += 1
+    print(f"Client connected. Online clients: {online_clients}")
+
+    if not cpu_thread_running:
+        cpu_thread_running = True
+        cpu_thread = socketio.start_background_task(target=send_cpu_info)
+         
+
+@socketio.on('disconnect')
+def disconnected():
+    global online_clients, cpu_thread_running
+    online_clients -= 1
+    print(f"Client disconnected. Online clients: {online_clients}")
+    
+    
+    
+    
     
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -302,7 +429,7 @@ atexit.register(close_server)
 
 # Start the Flask app in a separate thread
 def flask_run():
-    app.run(host='0.0.0.0', port=8008)
+    socketio.run(app, host='0.0.0.0', port=8008)
     
     
 if __name__ == '__main__':
@@ -312,6 +439,10 @@ if __name__ == '__main__':
 
     # Start the scheduled job
     schedule_midnight_job()
+    
+     
+    
+    
 
     # Run the scheduled tasks
     try:
