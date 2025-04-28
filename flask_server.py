@@ -22,7 +22,7 @@ from config import DB_NAME, DB_USER, DB_PASSWORD, PG_PORT, PG_CONTAINER, PG_BIN,
 import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
+logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
 class NameFilter(logging.Filter):
     def __init__(self, allowed_name):
         super().__init__()
