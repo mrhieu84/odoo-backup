@@ -12,7 +12,7 @@ DB_NAME = "my_db" #database backup
 DB_USER = "odoo" #user backup
 DB_PASSWORD = "db_password" #password database
 PG_PORT = 5432
-PG_BIN = '' # or PG_DUMP_BIN='/usr/local/pgsql/bin/'
+PG_BIN = '' # or PG_BIN='/usr/local/pgsql/bin/'
 PG_CONTAINER ='postgres_db' # if USE_POSTGRES_DOCKER = True, input name of container docker postgres
 DUMP_PREFIX = DB_NAME
 
