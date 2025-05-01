@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import  pytz
 # Timezone cho GMT+7 (Asia/Bangkok)
 LOCAL_TZ = pytz.timezone('Asia/Bangkok')
