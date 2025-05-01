@@ -18,7 +18,7 @@ PG_CONTAINER ='postgres_db' # if USE_POSTGRES_DOCKER = True, input name of conta
 DUMP_PREFIX = DB_NAME
 
 
-# === Configuration Minio ===
+# === Configuration Minio, need set IS_UPLOAD_MINIO = True ===
 MINIO_URL = "http://localhost:9500" # URL API Minio
 ACCESS_KEY = "YOUR_ACCESS_KEY" #ACCESS_KEY created  on UI minio or ROOT_USER
 SECRET_KEY = "YOUR_SECRET_KEY"# SECRET_KEY created on UI minio or ROOT_USER_PASSWORD
