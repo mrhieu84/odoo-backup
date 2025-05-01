@@ -27,7 +27,7 @@ BUCKET_BAK = "backups"
 
 
 FILESTORE_DIR = "/root/odoo15_docker/odoo-data/filestore/"  # filestore of odoo
-BACKUP_DIR = "/home/ubuntu/pg_dumps" # Backup path
+BACKUP_DIR = "/home/ubuntu/pg_dumps"  # Backup path, enter path for store files backup /home/user/your folder
 MAX_FILES_DUMP = 3
 
 #login UI
