@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request,Response,jsonify, redirect, url_for, session
 import atexit
 import signal
