@@ -462,7 +462,7 @@
         if (!confirmRestore) {
           e.preventDefault();
         } else {
-          const confirmDrop = confirm('Please DROP oe RENAME database before restore. Are you sure you want to restore this backup ?')
+          const confirmDrop = confirm('Restoring will create a new database with the same name. Please DROP or RENAME the existing database before restoring. Are you sure you want to proceed with the restore?');
           if (confirmDrop) {
                 $('.show-message').find('span').text('Please wait, Restoring...'); 
               $('.show-message').show();
