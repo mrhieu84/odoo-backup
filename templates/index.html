@@ -455,14 +455,14 @@
         link.css('opacity', '0.5');         
       }
     });
-      // Fixing the event handler for restore form
+     
       $('.restore-form').on('submit', function(e) {
         const confirmRestore = confirm('Please stop services before restore database.');
         
         if (!confirmRestore) {
           e.preventDefault();
         } else {
-          const confirmDrop = confirm('Please DROP database before restore. Are you sure you want to restore this backup ?')
+          const confirmDrop = confirm('Please DROP oe RENAME database before restore. Are you sure you want to restore this backup ?')
           if (confirmDrop) {
                 $('.show-message').find('span').text('Please wait, Restoring...'); 
               $('.show-message').show();
@@ -478,19 +478,12 @@
          $('.show-message').show();  
         $('.backup-btn').prop('disabled', true);  
         
-        // setInterval(() => {
-                 
-        //          console.log("loading log...")
-           
-        //          loadLog();
-    
-        //     }, 1500);
-            
+         
             
         
       });
 
-      // Hide backing overlay when the backup is done (for demonstration purposes, you can replace this with actual logic)
+      // Hide backing overlay when the backup is done  
       $(document).ajaxComplete(function() {
         $('.show-message').find('span').text('Please wait, backing up...')
          $('.show-message').hide();  
