@@ -132,7 +132,7 @@ if IS_UPLOAD_MINIO:
         if number_of_files > MAX_FILES_DUMP and oldest_file:
             try:
                 oldest_object = os.path.basename(oldest_file)
-                s3.remove_object(BUCKET_BAK, oldest_object)
+                s3.delete_object(Bucket=BUCKET_BAK, Key=oldest_object)
                 print(f"Deleted oldest file from MinIO: {oldest_object}")
             except S3Error as e:
                 print(f"Failed to delete oldest file from MinIO: {e}")
