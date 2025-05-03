@@ -29,21 +29,11 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logging.getLogger('werkzeug').disabled = True
 
-class NameFilter(logging.Filter):
-    def __init__(self, allowed_name):
-        super().__init__()
-        self.allowed_name = allowed_name
-
-    def filter(self, record):
-        return record.name == self.allowed_name
-        
 
 
 if not logger.handlers:
     file_handler = logging.FileHandler("flask.log")
     stream_handler = logging.StreamHandler(sys.stdout)
-    
-    stream_handler.addFilter(NameFilter(__name__))
 
     formatter = logging.Formatter('%(asctime)s %(levelname)s:%(message)s')
     file_handler.setFormatter(formatter)
