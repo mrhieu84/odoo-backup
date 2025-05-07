@@ -11,7 +11,7 @@ IS_UPLOAD_MINIO = False #set True if also upload backup files to Minio
 # === Configuration Database Odoo for ===
 DB_NAME = "my_db" #database backup
 DB_USER = "odoo" #user backup
-DB_PASSWORD = "db_password" #password database
+DB_PASSWORD = "db_password" #password database, if you meet error when backup  FATAL:  Peer authentication failed for user, change  pg_hba.conf of postgres into  "local   all   all  md5"
 PG_PORT = 5432
 PG_BIN = '' # or PG_BIN='/usr/local/pgsql/bin/'
 PG_CONTAINER ='postgres_db' # if USE_POSTGRES_DOCKER = True, input name of container docker postgres
