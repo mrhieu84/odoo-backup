@@ -311,10 +311,13 @@ def restore(filename):
                     file_path
                 ]
     
+                env = os.environ.copy()
+                env['PGPASSWORD'] = DB_PASSWORD  # DB_PASSWORD
+    
                 print(f"[INFO] Running restore command: {' '.join(restore_cmd)}")
                 
-        
-                result = subprocess.run(restore_cmd, check=True)
+                result = subprocess.run(restore_cmd, check=True, env=env)
+                
                 #print(f"[INFO] Restore output:\n{result.stdout.decode()}")
                 print(f"[INFO] Restore completed successfully.")
         
