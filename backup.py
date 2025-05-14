@@ -14,7 +14,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 
 from config import DB_NAME, DB_USER, DB_PASSWORD, PG_PORT, DUMP_PREFIX, USE_POSTGRES_DOCKER, PG_CONTAINER
-from config import BACKUP_DIR, FILESTORE_DIR, MAX_FILES_DUMP, PG_BIN
+from config import BACKUP_DIR, FILESTORE_DIR, IS_DONT_SAVE_FILESTORE_DISK, MAX_FILES_DUMP, PG_BIN
 from config import MINIO_URL, ACCESS_KEY, SECRET_KEY, BUCKET_BAK, IS_UPLOAD_MINIO, LOCAL_TZ
 
 import pytz 
@@ -194,6 +194,11 @@ if  os.path.exists(BACKUP_DIR) and  os.path.exists(filestore_dir):
         except S3Error as e:
               print(f"MinIO upload failed: {e}")
       
+
+    if IS_DONT_SAVE_FILESTORE_DISK:
+        os.remove(zip_path)
+        print(f"Deleted lOCAL ZIP: {zip_path}")
+
 
     print(f"ZIP backup created at: {zip_path}")
   
