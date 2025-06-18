@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "Checking for existing flask_server.py process..."
 
-PID=$(ps aux | grep 'flask_server.py' | awk '{print $2}')
+PID=$(ps aux | grep '[f]lask_server.py' | awk '{print $2}')
 
 if [ -n "$PID" ]; then
   echo "Flask server is running with PID: $PID"
