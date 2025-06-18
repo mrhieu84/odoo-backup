@@ -24,7 +24,7 @@ source venv/bin/activate
 ## Install Required Python Libraries
 
 ```bash
-pip install requests filetype schedule flask flask-cors minio boto3 pytz
+pip install requests filetype schedule flask flask-cors minio boto3 pytz psutil
 ```
 ## Make the Restart Script Executable
 
@@ -69,4 +69,43 @@ PASSWORD_LOGIN_UI = 'your password login'
 ```
 
 
+
+## systemctl server
+Note make service name: nhodoobackup, The service name is used in restart_flask.sh for checking service exists
+
+sudo nano /etc/systemd/system/nhodoobackup.service
+
+[Unit]
+Description=Flask Server Odoo backup Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/sy_backup #replace with your folder
+ExecStart=nohup /home/ubuntu/sy_backup/venv/bin/python-u flask_server.py > flask.log 2>&1 & 
+Restart=always
+RestartSec=5
+Environment=PATH=/usr/bin:/usr/local/bin
+StandardOutput=file:/home/ubuntu/sy_backup/flask.log #replace with your path flask.log
+StandardError=file:/home/ubuntu/sy_backup/flask.log
+
+
+[Install]
+WantedBy=multi-user.target
+
+
+sudo systemctl daemon-reload
+sudo systemctl enable nhodoobackup.service
+sudo systemctl start nhodoobackup.service
+
+
+sudo journalctl -f  -u  nhodoobackup
+
+When you change the code server, you can restart the server by using: sudo ./restart_flask or sudo systemctl restart nhodoobackup.service.
+
+
+
 check: https://tech.nhdesign.app/article/detail/2510800017039360
+
+
+

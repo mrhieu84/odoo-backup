@@ -3,7 +3,7 @@ import subprocess
 import os
 import time
 import datetime
-
+from datetime import datetime, timedelta
 from minio import Minio
 from minio.error import S3Error
 import json
@@ -16,9 +16,8 @@ from botocore.exceptions import NoCredentialsError
 from config import DB_NAME, DB_USER, DB_PASSWORD, PG_PORT, DUMP_PREFIX, USE_POSTGRES_DOCKER, PG_CONTAINER
 from config import BACKUP_DIR, FILESTORE_DIR, IS_DONT_SAVE_FILESTORE_DISK, MAX_FILES_DUMP, PG_BIN
 from config import MINIO_URL, ACCESS_KEY, SECRET_KEY, BUCKET_BAK, IS_UPLOAD_MINIO, LOCAL_TZ
-
 import pytz 
-
+import sys
 
 
 import builtins
@@ -26,8 +25,13 @@ import builtins
 original_print = builtins.print
 
 def print_with_time(*args, **kwargs):
-    timestamp = datetime.datetime.now(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S')
-    original_print(f"{timestamp} PRINT", *args, **kwargs)
+    timestamp = datetime.now(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S')
+    message = ' '.join(str(arg) for arg in args)
+    formatted_message = f"{timestamp} PRINT {message}"
+    
+    # Ghi ra stdout
+    original_print(formatted_message, **kwargs)
+
 
 
 builtins.print = print_with_time
@@ -100,7 +104,7 @@ else:
 
 print(f"Dumping database using: {dump_cmd}")
 try:
-    subprocess.run(dump_cmd, shell=True, check=True)
+    subprocess.run(dump_cmd, shell=True, check=True, stdout=sys.stdout,  stderr=sys.stderr)
     print(f"Database dumped to: {dump_path}")
     
     number_of_files = number_of_files + 1

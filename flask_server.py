@@ -15,7 +15,6 @@ import pytz
 from flask_socketio import SocketIO
 import psutil
 import json
-
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning, message="'sin' and 'sout' swap memory stats couldn't be determined")
 
@@ -50,10 +49,33 @@ original_print = builtins.print
 
 def print_with_time(*args, **kwargs):
     timestamp = datetime.now(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S')
-    original_print(f"{timestamp} PRINT", *args, **kwargs)
+    message = ' '.join(str(arg) for arg in args)
+    formatted_message = f"{timestamp} PRINT {message}"
+    
+    # Ghi ra stdout
+    original_print(formatted_message, **kwargs)
+
+    # Ghi ra file
+    logger.info(message)
 
 
 builtins.print = print_with_time
+
+
+def kill_previous_flask_servers():
+    current_pid = os.getpid()
+
+    for proc in psutil.process_iter(['pid', 'cmdline']):
+        try:
+            if proc.info['pid'] != current_pid and proc.info['cmdline']:
+                cmdline = ' '.join(proc.info['cmdline'])
+                if 'flask_server.py' in cmdline:
+                    print(f"Killing previous Flask server process: PID {proc.info['pid']}")
+                    proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+kill_previous_flask_servers()
 
                                    
 print("Starting flask server")
@@ -266,7 +288,7 @@ def restore(filename):
                  # Copy backup file into Docker container
                 print("Coping file dump into container...")
                 docker_cp_cmd = ['docker', 'cp', os.path.join(BACKUP_DIR, filename), f'{PG_CONTAINER}:/tmp/{filename}']
-                subprocess.run(docker_cp_cmd, check=True)
+                subprocess.run(docker_cp_cmd, check=True, stdout=sys.stdout,  stderr=sys.stderr)
         
                 # Prepare restore command for Docker
                 restore_cmd = [
@@ -282,7 +304,7 @@ def restore(filename):
                 print(f"[INFO] Running restore command in Docker: {' '.join(restore_cmd)}")
                 
                 # Run restore inside the container
-                result = subprocess.run(restore_cmd, check=True)
+                result = subprocess.run(restore_cmd, check=True,stdout=sys.stdout,  stderr=sys.stderr)
                 print("[INFO] Restore completed successfully in Docker.")
             except subprocess.CalledProcessError as e:
                 print(f"[ERROR] pg_restore failed:Please DROP or RENAME old database before restore.")
@@ -316,7 +338,7 @@ def restore(filename):
     
                 print(f"[INFO] Running restore command: {' '.join(restore_cmd)}")
                 
-                result = subprocess.run(restore_cmd, check=True, env=env)
+                result = subprocess.run(restore_cmd, check=True, env=env,stdout=sys.stdout,  stderr=sys.stderr)
                 
                 #print(f"[INFO] Restore output:\n{result.stdout.decode()}")
                 print(f"[INFO] Restore completed successfully.")
@@ -381,7 +403,7 @@ def backup():
 
   try:
       # Run using the current Python interpreter (from venv)
-      subprocess.run([sys.executable, backup_script], check=True)
+      subprocess.run([sys.executable, backup_script], check=True,stdout=sys.stdout,  stderr=sys.stderr)
       print("Backup completed successfully.")
   except subprocess.CalledProcessError as e:
       print(f"Backup failed: {e}")
