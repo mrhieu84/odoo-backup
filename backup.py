@@ -3,7 +3,6 @@ import subprocess
 import os
 import time
 import datetime
-from datetime import datetime, timedelta
 from minio import Minio
 from minio.error import S3Error
 import json
@@ -25,7 +24,7 @@ import builtins
 original_print = builtins.print
 
 def print_with_time(*args, **kwargs):
-    timestamp = datetime.now(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = datetime.datetime.now(LOCAL_TZ).strftime('%Y-%m-%d %H:%M:%S')
     message = ' '.join(str(arg) for arg in args)
     formatted_message = f"{timestamp} PRINT {message}"
     
