@@ -82,7 +82,7 @@ After=network.target
 [Service]
 User=ubuntu
 WorkingDirectory=/home/ubuntu/sy_backup #replace with your folder
-ExecStart=nohup /home/ubuntu/sy_backup/venv/bin/python-u flask_server.py > flask.log 2>&1 & 
+ExecStart=nohup /home/ubuntu/sy_backup/venv/bin/python -u flask_server.py > flask.log 2>&1 & 
 Restart=always
 RestartSec=5
 Environment=PATH=/usr/bin:/usr/local/bin
