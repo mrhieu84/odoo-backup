@@ -33,11 +33,6 @@ pip install requests filetype schedule flask flask-cors minio boto3 pytz psutil
 chmod +x ./restart_flask.sh
 ```
 
-## Start the Flask Backup Server
-
-```bash
-./restart_flask.sh
-```
 
 
 ### Option 1: PostgreSQL Running in Docker
@@ -104,6 +99,13 @@ sudo journalctl -f  -u  nhodoobackup
 
 When you change the code server, you can restart the server by using: sudo ./restart_flask or sudo systemctl restart nhodoobackup.service.
 
+
+
+## Start the Flask Backup Server
+
+```bash
+./restart_flask.sh
+```
 
 
 check: https://tech.nhdesign.app/article/detail/2510800017039360
