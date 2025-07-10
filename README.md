@@ -3,7 +3,7 @@ Daily Backup odoo
 
 ## Create a Python Virtual Environment
 
-In `/root/backup/`, run the following commands:
+In `/root/backup/` or `/home/backup`, run the following commands:
 
 ```bash
 sudo apt update
