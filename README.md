@@ -25,7 +25,7 @@ source venv/bin/activate
 ## Install Required Python Libraries
 
 ```bash
-pip install requests filetype schedule flask flask-cors minio boto3 pytz psutil
+pip install requests filetype schedule flask flask-cors flask_socketio minio boto3 pytz psutil eventlet
 ```
 ## Make the Restart Script Executable
 
@@ -106,6 +106,18 @@ When you change the code server, you can restart the server by using: sudo ./res
 ```bash
 ./restart_flask.sh
 ```
+
+## Logging
+
+```bash
+tail -f flask.log
+```
+
+## Access
+http://your ip:8808
+
+## Password default Login
+admin
 
 
 check: https://tech.nhdesign.app/article/detail/2510800017039360

@@ -444,7 +444,7 @@ atexit.register(close_server)
 
 # Start the Flask app in a separate thread
 def flask_run():
-    socketio.run(app, host='0.0.0.0', port=8008)
+    socketio.run(app, host='0.0.0.0', port=8808)
     
     
 if __name__ == '__main__':

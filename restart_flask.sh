@@ -41,4 +41,4 @@ fi
 cd "$SCRIPT_DIR"
 nohup "$PYTHON" -u "$SCRIPT_DIR/flask_server.py" > "$SCRIPT_DIR/flask.log" 2>&1 &
 
-echo "Flask server restarted at port 8008 and running in background."
+echo "Flask server restarted at port 8808 and running in background."
