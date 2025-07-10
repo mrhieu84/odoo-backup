@@ -7,7 +7,8 @@ In `/root/backup/` or `/home/user/backup`, run the following commands:
 
 ```bash
 sudo apt update
-pip install virtualenv
+sudo apt install python3-virtualenv
+cd /home/user/backup
 virtualenv venv
 ```
 
